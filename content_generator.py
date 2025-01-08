@@ -3,10 +3,9 @@ import requests
 import openai
 import logging
 from dotenv import load_dotenv
-from openai import OpenAI
 
 # Set up logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.ERROR)
 logger = logging.getLogger(__name__)
 
 # Load environment variables
@@ -128,7 +127,7 @@ def generate_post_with_new_api(summary: str, platform: str) -> str:
             raise ValueError(f"No Assistant ID configured for platform: {platform}")
 
         # Initialize OpenAI client
-        openai.api_key = "your-api-key-here"  # Ensure the API key is set
+        #openai.api_key = OPENAI_API_KEY  # Ensure the API key is set
 
         # Initialize OpenAI Client (assuming the `openai` package is already configured)
         client = openai.Client()
@@ -136,14 +135,14 @@ def generate_post_with_new_api(summary: str, platform: str) -> str:
         # Step 1: Create an Assistant
         try:
             assistant = client.beta.assistants.retrieve(assistant_id)
-        except openai.error.OpenAIError as e:
+        except openai.OpenAIError as e:
             logger.error(f"Error retrieving assistant: {e}")
             raise
 
         # Step 2: Create a Thread
         try:
             thread = client.beta.threads.create()
-        except openai.error.OpenAIError as e:
+        except openai.OpenAIError as e:
             logger.error(f"Error creating thread: {e}")
             raise
 
@@ -154,7 +153,7 @@ def generate_post_with_new_api(summary: str, platform: str) -> str:
                 role="user",
                 content=summary
             )
-        except openai.error.OpenAIError as e:
+        except openai.OpenAIError as e:
             logger.error(f"Error adding message to thread: {e}")
             raise
 
@@ -164,7 +163,7 @@ def generate_post_with_new_api(summary: str, platform: str) -> str:
                 thread_id=thread.id,
                 assistant_id=assistant.id
             )
-        except openai.error.OpenAIError as e:
+        except openai.OpenAIError as e:
             logger.error(f"Error running the assistant: {e}")
             raise
 
@@ -181,7 +180,7 @@ def generate_post_with_new_api(summary: str, platform: str) -> str:
                     logger.error(f"Run failed: {run_status.last_error}")
                     return "Error: Run failed."
                 time.sleep(2)  # Wait before checking again
-            except openai.error.OpenAIError as e:
+            except openai.OpenAIError as e:
                 logger.error(f"Error retrieving run status: {e}")
                 return "Error: Unable to retrieve run status."
             except requests.exceptions.RequestException as e:
@@ -191,7 +190,7 @@ def generate_post_with_new_api(summary: str, platform: str) -> str:
         # Step 6: Parse the Assistant's response
         try:
             messages = client.beta.threads.messages.list(thread_id=thread.id)
-        except openai.error.OpenAIError as e:
+        except openai.OpenAIError as e:
             logger.error(f"Error retrieving messages: {e}")
             raise
 
@@ -215,7 +214,7 @@ def generate_post_with_new_api(summary: str, platform: str) -> str:
     except ValueError as e:
         logger.error(f"ValueError: {e}")
         return str(e)
-    except openai.error.OpenAIError as e:
+    except openai.OpenAIError as e:
         logger.error(f"OpenAI API error: {e}")
         return "Error: OpenAI API issue."
     except requests.exceptions.RequestException as e:
@@ -235,7 +234,7 @@ def main():
     input_type = input("Is the source 1-URL or 2-TEXT?").strip()
 
     try:
-        if input_type == 0:
+        if input_type == '1':
             article_url = input("Enter the article URL: ").strip()
             #model = input("Enter the Perplexity model to use (default: pplx-7b-online): ").strip() or "pplx-7b-online"
             #model = input("Enter the Perplexity model to use (default or custom): ").strip() or "default"
